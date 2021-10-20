@@ -3,4 +3,4 @@ Character mario made in Intersystem Cache!
 
 
 future projection:
-Convert the engine to JS CLI;
+Convert the engine to Node CLI;
