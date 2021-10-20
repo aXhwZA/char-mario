@@ -1,0 +1,502 @@
+CHARMARIORG001	; DM 12/2020  - SEM TÍTULO
+	;
+	#include %CSUTICSP
+	;
+	;
+	; update
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$Update^CHARMARIORG001(codEmpresa,userInput,session,player,canvas)
+Update(codEmpresa,userInput,session,player,canvas)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	;
+	set sc=$$SetPlayerPosition^CHARMARIORG001(codEmpresa,userInput,canvas,session,player)
+	;
+	set sc=$$UpdateEvents(codEmpresa,userInput,.canvas,session)
+	;
+	set sc=$$GenerateObjects(codEmpresa,userInput,.canvas,session)
+	;
+	if userInput'="" do
+	. set:userInput'="w" ^ADAPCHARMARIO(session,player,"LastKey")=userInput
+	;
+	quit sc
+	;
+	; Get Player Position
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$SetPlayerPosition^CHARMARIORG001(codEmpresa,userInput,canvas,session,player)
+SetPlayerPosition(codEmpresa,userInput,canvas,session,player)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	new alturaGrid,larguraGrid,lineGrid,playerPosition
+	;
+	set alturaGrid=$length(canvas,z)
+	set larguraGrid=$length($piece(canvas,z,1),y)
+	;
+	set playerPosition=""
+	set playerPosition=$get(^ADAPCHARMARIO(session,"PlayerPosition",player))
+	if playerPosition="" set playerPosition=(alturaGrid-1)_"^2"
+	;
+	set lineGrid=$piece(canvas,z,$piece(playerPosition,z,1))
+	;
+	if userInput="a"&&($piece(lineGrid,y,$piece(playerPosition,z,2)-1)=" ") do
+	. if $piece(playerPosition,z,2)=2 do
+	. . set $piece(playerPosition,z,2)=larguraGrid-1
+	. else  do
+	. . set $piece(playerPosition,z,2)=$piece(playerPosition,z,2)-1
+	;
+	if userInput="d"&&($piece(lineGrid,y,$piece(playerPosition,z,2)+1)=" ") do
+	. if $piece(playerPosition,z,2)=(larguraGrid-1) do
+	. . set $piece(playerPosition,z,2)=2
+	. else  do
+	. . set $piece(playerPosition,z,2)=$piece(playerPosition,z,2)+1
+	;
+	set ^ADAPCHARMARIO(session,"PlayerPosition",player)=playerPosition
+	;
+	quit sc
+	;
+	; Generate Canvas
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$GenerateCanvas^CHARMARIORG001(codEmpresa,.canvas,session)
+GenerateCanvas(codEmpresa,session,canvas)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	new alturaGrid,dadosLinha,larguraGrid
+	new data,e,i,canvasLine
+	;
+	set session=$get(session)
+	set lastCanvas=$get(^ADAPCHARMARIO(session,"LastPlayerCanvas",player),"")
+	;
+	set canvasLine=""
+	;
+	set alturaGrid=$length(canvas,"^")
+	;
+	set maxLarge=80
+	set startLine=1
+	set middle=maxLarge/2
+	;
+	set playerPosition=""
+	set playerPosition=$get(^ADAPCHARMARIO(session,"PlayerPosition",$job))
+	;
+	set positionX=$piece(playerPosition,z,2)
+	set playerCenter=positionX-middle
+	;
+	set:playerCenter>=1 startLine=playerCenter
+	;
+	write #
+	;
+	w "Super AdapBoy"
+	;
+	for i=1:1:alturaGrid do
+	. ;
+	. set dadosLinha=""
+	. ;
+	. set dadosLinha=$piece(canvas,z,i)
+	. ;
+	. quit:lastCanvas'=""&&(dadosLinha=lastCanvas)
+	. ;
+	. set larguraGrid=$length(dadosLinha,";")
+	. ;
+	. set canvasLine=""
+	. for e=startLine:1:maxLarge do
+	. . set data=""
+	. . set data=$piece(dadosLinha,y,e)
+	. . if data="" set data=" "
+	. . set canvasLine=canvasLine_data
+	. write !, canvasLine
+	;
+	quit sc
+	;
+	; Generate Canvas
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$GenerateCanvas^CHARMARIORG001(codEmpresa,.canvas,session)
+GenerateCanvas2(codEmpresa,session,canvas)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	new alturaGrid,dadosLinha,larguraGrid
+	new data,e,i,canvasLine
+	;
+	set session=$get(session)
+	;
+	set canvasLine=""
+	;
+	set alturaGrid=$length(canvas,"^")
+	;
+	set maxLarge=80
+	set startLine=1
+	set middle=maxLarge/2
+	;
+	set playerPosition=""
+	set playerPosition=$get(^ADAPCHARMARIO(session,"PlayerPosition",$job))
+	;
+	set positionX=$piece(playerPosition,z,2)
+	set playerCenter=positionX-middle
+	;
+	quit:playerCenter<1!($get(^ADAPCHARMARIO(session,"CameraPosition",$job))=playerCenter) 1
+	;
+	set:playerCenter>=1 startLine=playerCenter
+	;
+	set:playerCenter>=1 maxLarge=maxLarge+(playerCenter-1)
+	;
+	write #
+	;
+	w "Super AdapBoy"
+	;
+	for i=1:1:alturaGrid do
+	. ;
+	. set dadosLinha=""
+	. ;
+	. set dadosLinha=$piece(canvas,z,i)
+	. ;
+	. set larguraGrid=$length(dadosLinha,";")
+	. ;
+	. set canvasLine=""
+	. for e=startLine:1:maxLarge do
+	. . set data=""
+	. . set data=$piece(dadosLinha,y,e)
+	. . if data="" set data=" "
+	. . set canvasLine=canvasLine_data
+	. write !, canvasLine
+	;
+	set ^ADAPCHARMARIO(session,"CameraPosition",$job)=playerCenter
+	;
+	quit sc
+	;
+	; Generate Objects
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$GenerateObjects^CHARMARIORG001(codEmpresa,userInput,.canvas,session)
+GenerateObjects(codEmpresa,userInput,canvas,session)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	new alturaGrid,dadosLinha,larguraGrid
+	new data,e,i,canvasLine,dx,dy,lastCanvas,lastVisibleCanvas
+	;
+	set lastCanvas=$get(^ADAPCHARMARIO(session,"LastPlayerCanvas",player),"")
+	set lastVisibleCanvas=$get(^ADAPCHARMARIO(session,"LastPlayerVisibleCanvas",player),"")
+	;
+	set session=$get(session)
+	;
+	set canvasLine=""
+	;
+	set alturaGrid=$length(canvas,"^")
+	;
+	set maxLarge=80
+	set startLine=1
+	set middle=maxLarge/2
+	;
+	set startLine=$get(^ADAPCHARMARIO(session,"CameraPosition",$job))
+	;
+	set maxLarge=maxLarge+(startLine-1)
+	;
+	set (dx,dy)=""
+	;
+	SET dy=0,dx=0
+	WRITE *27,*91,dy+1,*59,dx+1,*72
+	SET $Y=dy,$X=dx
+	;
+	for i=1:1:alturaGrid do
+	. ;
+	. set dadosLinha=""
+	. ;
+	. set dadosLinha=$piece(canvas,z,i)
+	. ;
+	. quit:lastCanvas'=""&&(dadosLinha=lastCanvas)
+	. ;
+	. set larguraGrid=$length(dadosLinha,";")
+	. ;
+	. set sc=$$DisplayPlayerPosition(codEmpresa,userInput,i,.dadosLinha,session)
+	. ;
+	. set sc=$$DisplayEnimiesPosition(codEmpresa,userInput,i,.dadosLinha,session)
+	. ;
+	. set canvasLine=""
+	. for e=startLine:1:maxLarge do
+	. . set data=""
+	. . set data=$piece(dadosLinha,y,e)
+	. . if data="" set data=" "
+	. . set canvasLine=canvasLine_data
+	. write !, canvasLine
+	. set $piece(lastCanvas,z,i)=dadosLinha
+	;
+	set ^ADAPCHARMARIO(session,"LastPlayerCanvas",player)=lastCanvas
+	set ^ADAPCHARMARIO(session,"LastPlayerVisibleCanvas",player)=lastCanvas
+	;
+	quit sc
+	;
+	; Set Player Position
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$DisplayPlayerPosition^CHARMARIORG001(codEmpresa,userInput,alturaGrid,.data,session)
+DisplayPlayerPosition(codEmpresa,userInput,alturaGrid,data,session)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	new atualPlayer,player,playerPosition
+	;
+	set atualPlayer=$$$job
+	;
+	set player=""
+	for  set player=$order(^ADAPCHARMARIO(session,"PlayerPosition",player)) quit:player=""  do
+	. ;
+	. set playerPosition=""
+	. set playerPosition=$get(^ADAPCHARMARIO(session,"PlayerPosition",player))
+	. ;
+	. if $piece(playerPosition,z,1)'=alturaGrid quit
+	. ;
+	. set $piece(data,y,$piece(playerPosition,z,2))="m"
+	. ;
+	. if player=atualPlayer do
+	. . set $piece(data,y,$piece(playerPosition,z,2))="a"
+	. ;
+	. set ^ADAPCHARMARIO(session,"LastPlayerPosition",player)=playerPosition
+	;
+	quit sc
+	;
+	; Display Eminies Position
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$DisplayEnimiesPosition^CHARMARIORG001(codEmpresa,userInput,alturaGrid,.data,session)
+DisplayEnimiesPosition(codEmpresa,userInput,alturaGrid,data,session)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	new enimy,enimyPosition,enimyIcon
+	;
+	set enimy=""
+	for  set enimy=$order(^ADAPCHARMARIO(session,"Enimies",enimy)) quit:enimy=""  do
+	. ;
+	. set enimyPosition=$get(^ADAPCHARMARIO(session,"Enimies",enimy))
+	. ;
+	. if $piece(enimyPosition,z,1)'=alturaGrid quit
+	. ;
+	. set enimyIcon=""
+	. set enimyIcon=$piece(enimyPosition,z,5)
+	. ;
+	. set $piece(data,y,$piece(enimyPosition,z,2))=enimyIcon
+	;
+	quit sc
+	;
+	; Get Canvas
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$GetCanvas^CHARMARIORG001(codEmpresa,.canvas)
+GetCanvas(codEmpresa,canvas)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	;
+	set canvas="#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#^"
+			_"#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#^"
+			_"#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;?; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#^"
+			_"#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#^"
+			_"#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#^"
+			_"#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#;#;#;#;#;#;#;#; ; ; ;#;#;#;?; ; ; ; ; ; ; ; ;?; ; ; ; ; ; ; ; ; ;#;#;#; ; ; ;#;?;?;#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#^"
+			_"#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;?; ; ; ;#;?;#;?;#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#; ;#; ; ; ; ; ; ; ; ; ; ;#;#; ; ;#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#^"
+			_"#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#; ; ; ; ; ; ; ; ; ; ;#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#;?;#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#; ; ;#; ; ; ;?; ;?; ;?; ; ; ; ;#; ; ; ; ; ; ; ; ; ;#;#; ; ; ; ; ;#;#; ;#;#; ; ; ; ; ; ; ; ;#;#;#; ; ;#;#; ; ; ; ; ; ;#;#;?;#; ; ; ; ; ; ; ; ;#^"
+			_"#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#; ; ; ; ; ; ; ; ;#; ; ; ; ; ; ; ;#; ; ; ; ; ; ; ; ; ; ;#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#;#;#; ;#;#;#; ; ; ; ; ; ;#;#;#;#; ; ;#;#;#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#^"
+			_"#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#; ; ; ; ; ; ; ; ;#; ; ; ; ; ; ; ;#; ; ; ; ; ; ; ; ; ; ;#; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;#;#;#;#; ;#;#;#;#; ; ; ; ;#;#;#;#;#; ; ;#;#;#;#; ; ;#; ; ; ; ; ; ; ; ;#; ; ; ; ;#^"
+			_"#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#; ; ;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#; ; ; ;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#; ; ;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#;#^"
+	;
+	quit sc
+	;
+	;
+	; Update Events
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$UpdateEvents^CHARMARIORG001(codEmpresa,userInput,.canvas,session,player)
+UpdateEvents(codEmpresa,userInput,canvas,session,player)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	new playerPosition
+	;
+	set player=$get(player,$$$job)
+	;
+	set session=$get(session)
+	;
+	set playerPosition=""
+	set playerPosition=$get(^ADAPCHARMARIO(session,"PlayerPosition",$$$job))
+	;
+	if userInput="w" do
+	. set sc=$$Jump(codEmpresa,.canvas,.playerPosition,session)
+	;
+	if $piece($piece(canvas,z,$piece(playerPosition,z,1)+1),y,$piece(playerPosition,z,2))=" "&&(userInput'="w") do
+	. set sc=$$PlayerFall(codEmpresa,.canvas,.playerPosition,session,player)
+	;
+	set sc=$$UpdateEnemies(codEmpresa,.canvas,playerPosition,session)
+	;
+	set sc=$$UpdatePlayerPosition^CHARMARIORG001(codEmpresa,"",canvas,playerPosition,session)
+	;
+	quit sc
+	;
+	; Player Fall
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$Fall^CHARMARIORG001(codEmpresa,.canvas,.playerPosition,session,player)
+PlayerFall(codEmpresa,canvas,playerPosition,session,player)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	new lastKey,altura
+	;
+	quit:player'=$$$job 1
+	;
+	set lastKey=$get(^ADAPCHARMARIO(session,player,"LastKey"))
+	;
+	set playerPosition=$get(^ADAPCHARMARIO(session,"PlayerPosition",$$$job))
+	;
+	set altura=$length(canvas,z)
+	;
+	while ($piece($piece(canvas,z,$piece(playerPosition,z,1)+1),y,$piece(playerPosition,z,2))=" ") {
+		;
+		if ($piece($piece(canvas,z,$piece(playerPosition,z,1)+1),y,$piece(playerPosition,z,2))=" ") {
+			set $piece(playerPosition,z,1)=$piece(playerPosition,z,1)+1
+		}
+		;
+		h 0.03
+		;
+		if ($piece($piece(canvas,z,$piece(playerPosition,z,1)+1),y,$piece(playerPosition,z,2))'=" ") {
+			if lastKey="a" {
+				set $piece(playerPosition,z,2)=$piece(playerPosition,z,2)-1
+			}
+			if lastKey="d" {
+				set $piece(playerPosition,z,2)=$piece(playerPosition,z,2)+1
+			}
+		}
+		;
+		set sc=$$UpdatePlayerPosition^CHARMARIORG001(codEmpresa,"",canvas,playerPosition,session)
+		if $$$ISERR(sc) quit
+		set sc=$$GenerateObjects(codEmpresa,"",.canvas,session)
+		if $$$ISERR(sc) quit
+		set sc=$$GenerateCanvas2^CHARMARIORG001(codEmpresa,session,.canvas)
+	}
+	;
+	quit sc
+	;
+	; Jump
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$Jump^CHARMARIORG001(codEmpresa,.canvas,.playerPosition)
+Jump(codEmpresa,canvas,playerPosition,session)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	new i,lastKey,altura
+	;
+	set lastKey=$get(^ADAPCHARMARIO(session,$$$job,"LastKey"))
+	;
+	set altura=$length(canvas,z)
+	;
+	for i=1:1:altura do
+	. if i<=5&&($piece($piece(canvas,z,$piece(playerPosition,z,1)-1),y,$piece(playerPosition,z,2))=" ") do
+	. . set $piece(playerPosition,z,1)=$piece(playerPosition,z,1)-1
+	. if i>3&&($piece($piece(canvas,z,$piece(playerPosition,z,1)+1),y,$piece(playerPosition,z,2))=" ") do
+	. . set $piece(playerPosition,z,1)=$piece(playerPosition,z,1)+1
+	. h 0.03
+	. if ($piece($piece(canvas,z,$piece(playerPosition,z,1)+1),y,$piece(playerPosition,z,2))=" ") do
+	. . if lastKey="a" do
+	. . . set $piece(playerPosition,z,2)=$piece(playerPosition,z,2)-1
+	. . if lastKey="d" do
+	. . . set $piece(playerPosition,z,2)=$piece(playerPosition,z,2)+1
+	. if ($piece($piece(canvas,z,$piece(playerPosition,z,1)),y,$piece(playerPosition,z,2))'=" ") do
+	. . if lastKey="a" do
+	. . . set $piece(playerPosition,z,2)=$piece(playerPosition,z,2)+1
+	. . if lastKey="d" do
+	. . . set $piece(playerPosition,z,2)=$piece(playerPosition,z,2)-1
+	. set sc=$$UpdatePlayerPosition^CHARMARIORG001(codEmpresa,"",canvas,playerPosition,session)
+	. set sc=$$GenerateCanvas2^CHARMARIORG001(codEmpresa,session,.canvas)
+	. set sc=$$GenerateObjects(codEmpresa,"",.canvas,session)
+	;
+	quit sc
+	;
+	; Update Enemies
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$UpdateEnemies^CHARMARIORG001(codEmpresa,.canvas,.playerPosition,session)
+UpdateEnemies(codEmpresa,canvas,playerPosition,session)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	;
+	set sc=$$SetEnimiesPositions^CHARMARIORG001(codEmpresa,"Gumba","c",canvas,,session)
+	if $$$ISERR(sc) quit sc
+	;
+	set sc=$$SetEnimiesPositions^CHARMARIORG001(codEmpresa,"Turtle","e",canvas,,session)
+	if $$$ISERR(sc) quit sc
+	;
+	quit sc
+	;
+	; Get Player Position
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$SetEnimiesPosition^CHARMARIORG001(codEmpresa,enimy,icon,canvas,.enimyPosition,session)
+SetEnimiesPositions(codEmpresa,enimy,icon,canvas,enimyPosition,session)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	new alturaGrid,direction,larguraGrid,lineGrid,timeMove,timeNow
+	;
+	set direction="L"
+	;
+	set alturaGrid=$length(canvas,z)
+	set larguraGrid=$length($piece(canvas,z,1),y)
+	;
+	set enimyPosition=$get(enimyPosition)
+	set:enimyPosition="" enimyPosition=$get(^ADAPCHARMARIO(session,"Enimies",enimy))
+	if enimyPosition="" set enimyPosition=(alturaGrid-2)_"^"_$random(100)_"^L"
+	;
+	set direction=$piece(enimyPosition,z,3)
+	set timeMove=$piece($piece(enimyPosition,z,4),",",2)
+	;
+	set timeNow=$piece($horolog,",",2)
+	;
+	if timeMove'=""&&(timeNow-timeMove<1) quit $$$OK
+	;
+	set lineGrid=$piece(canvas,z,$piece(enimyPosition,z,1))
+	;
+	if $piece(lineGrid,y,$piece(enimyPosition,z,2)+1)'=" "!($piece($piece(canvas,z,$piece(enimyPosition,z,1)+1),y,$piece(enimyPosition,z,2)+1)=" ") do
+	. set direction="L"
+	if $piece(lineGrid,y,$piece(enimyPosition,z,2)-1)'=" "!($piece($piece(canvas,z,$piece(enimyPosition,z,1)+1),y,$piece(enimyPosition,z,2)-1)=" ") do
+	. set direction="R"
+	;
+	if direction="L" do
+	. set $piece(enimyPosition,z,2)=$piece(enimyPosition,z,2)-1
+	if direction="R" do
+	. set $piece(enimyPosition,z,2)=$piece(enimyPosition,z,2)+1
+	;
+	set $piece(enimyPosition,z,3)=direction
+	set $piece(enimyPosition,z,4)=$horolog
+	set $piece(enimyPosition,z,5)=icon
+	;
+	set ^ADAPCHARMARIO(session,"Enimies",enimy)=enimyPosition
+	;
+	quit sc
+	;
+	; Update Player Position
+	; (DM - 29/12/2020)
+	;
+	; set sc=$$UpdatePlayerPosition^CHARMARIORG001(codEmpresa,userInput,canvas,.playerPosition)
+UpdatePlayerPosition(codEmpresa,userInput,canvas,playerPosition,session)	;
+	$$$VAR
+	new sc set sc=$$$OK
+	new alturaGrid,larguraGrid,lineGrid,player
+	;
+	set player=$$$job
+	;
+	set alturaGrid=$length(canvas,z)
+	set larguraGrid=$length($piece(canvas,z,1),y)
+	;
+	set lineGrid=$piece(canvas,z,$piece(playerPosition,z,1))
+	;
+	if userInput="a"&&($piece(lineGrid,y,$piece(playerPosition,z,2)-1)=" ") do
+	. if $piece(playerPosition,z,2)=2 do
+	. . set $piece(playerPosition,z,2)=larguraGrid-1
+	. else  do
+	. . set $piece(playerPosition,z,2)=$piece(playerPosition,z,2)-1
+	;
+	if userInput="d"&&($piece(lineGrid,y,$piece(playerPosition,z,2)+1)'=" ") do
+	. if $piece(playerPosition,z,2)=(larguraGrid-1) do
+	. . set $piece(playerPosition,z,2)=2
+	. else  do
+	. . set $piece(playerPosition,z,2)=$piece(playerPosition,z,2)+1
+	;
+	set ^ADAPCHARMARIO(session,"PlayerPosition",player)=playerPosition
+	;
+	quit sc
+	;
+	; csw:csp:naogerar

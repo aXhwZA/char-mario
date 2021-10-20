@@ -1,0 +1,16 @@
+CHARMARIO	;
+	new player,session,codEmpresa,canvas
+	set player=$get(player,$job)
+	set session=$get(session,"teste")
+	set codEmpresa=1
+	;
+	set canvas=""
+	set sc=$$GetCanvas^CHARMARIORG001(codEmpresa,.canvas)
+	set sc=$$GenerateCanvas^CHARMARIORG001(codEmpresa,session,.canvas)
+	;
+	while 0=0 {
+		set userInput=""
+		read userInput#1:0.1
+		set sc=$$GenerateCanvas2^CHARMARIORG001(codEmpresa,session,.canvas)
+		set sc=$$Update^CHARMARIORG001(codEmpresa,userInput,session,player,canvas)
+	}
